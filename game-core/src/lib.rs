@@ -1,5 +1,7 @@
 extern crate amethyst;
 
+use amethyst::utils::ortho_camera::CameraNormalizeMode;
+use amethyst::utils::ortho_camera::CameraOrtho;
 use amethyst::{
     assets::{AssetStorage, Loader},
     core::{Parent, Transform},
@@ -7,8 +9,8 @@ use amethyst::{
     input::InputHandler,
     prelude::*,
     renderer::{
-        Camera, MaterialTextureSet, PngFormat, Projection, SpriteRender, SpriteSheet,
-        SpriteSheetFormat, SpriteSheetHandle, Texture, TextureMetadata, Transparent,
+        Camera, MaterialTextureSet, PngFormat, SpriteRender, SpriteSheet, SpriteSheetFormat,
+        SpriteSheetHandle, Texture, TextureMetadata, Transparent,
     },
 };
 
@@ -51,6 +53,7 @@ fn load_sprite_sheet(world: &mut World, png_path: &str, ron_path: &str) -> Sprit
             &texture_storage,
         )
     };
+
     let mut material_texture_set = world.write_resource::<MaterialTextureSet>();
     let texture_id = material_texture_set.len() as u64;
     material_texture_set.insert(texture_id, texture_handle);
@@ -85,12 +88,14 @@ fn init_reference_sprite(world: &mut World, sprite_sheet: &SpriteSheetHandle) ->
     let mut transform = Transform::default();
     transform.translation.x = 100.0;
     transform.translation.y = 0.0;
+
     let sprite = SpriteRender {
         sprite_sheet: sprite_sheet.clone(),
         sprite_number: 0,
         flip_horizontal: false,
         flip_vertical: false,
     };
+
     world
         .create_entity()
         .with(transform)
@@ -103,12 +108,14 @@ fn init_player(world: &mut World, sprite_sheet: &SpriteSheetHandle) -> Entity {
     let mut transform = Transform::default();
     transform.translation.x = 0.0;
     transform.translation.y = 0.0;
+
     let sprite = SpriteRender {
         sprite_sheet: sprite_sheet.clone(),
         sprite_number: 1,
         flip_horizontal: false,
         flip_vertical: false,
     };
+
     world
         .create_entity()
         .with(transform)
@@ -120,12 +127,19 @@ fn init_player(world: &mut World, sprite_sheet: &SpriteSheetHandle) -> Entity {
 
 fn init_camera(world: &mut World, parent: Entity) {
     let mut transform = Transform::default();
-    transform.translation.z = 1.0;
+    transform.translation.z = 2.0;
+    transform.translation.x = -256.0;
+    transform.translation.y = -256.0;
+    transform.scale.x = 512.0;
+    transform.scale.y = 512.0;
+
+    world.register::<CameraOrtho>();
+
     world
         .create_entity()
-        .with(Camera::from(Projection::orthographic(
-            -250.0, 250.0, 250.0, -250.0,
-        ))).with(Parent { entity: parent })
+        .with(CameraOrtho::normalized(CameraNormalizeMode::Contain))
+        .with(Camera::standard_2d())
+        .with(Parent { entity: parent })
         .with(transform)
         .build();
 }

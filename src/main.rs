@@ -34,7 +34,11 @@ fn main() -> amethyst::Result<()> {
             InputBundle::<String, String>::new()
                 .with_bindings_from_file(format!("{}/input.ron", root))?,
         )?.with(MovementSystem, "movement", &[])
-        .with_bundle(
+        .with(
+            amethyst::utils::ortho_camera::CameraOrthoSystem::default(),
+            "OrthoCamera",
+            &[],
+        ).with_bundle(
             RenderBundle::new(pipe, Some(config))
                 .with_sprite_sheet_processor()
                 .with_sprite_visibility_sorting(&[]), // Let's us use the `Transparent` component
