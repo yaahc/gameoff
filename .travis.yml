@@ -1,0 +1,62 @@
+sudo: required
+
+language: rust
+
+addons:
+  apt:
+    packages:
+    - libasound2-dev
+    - libsdl2-dev
+
+os:
+- linux
+- osx
+- windows
+
+rust:
+- stable
+- beta
+- nightly
+
+matrix:
+  exclude:
+    - rust: beta
+      os: osx
+  fast_finish: true
+  allow_failures:
+  - rust: nightly
+
+cache:
+  cargo: true
+  apt: true
+
+before_install:
+- |
+  if [ ${TRAVIS_OS_NAME} == "windows" ]
+  then
+    wget --no-check-certificate https://www.libsdl.org/release/SDL2-devel-2.0.8-VC.zip
+    7z x SDL2-devel-2.0.8-VC.zip
+    cp SDL2-2.0.8/lib/x64/*.lib ${HOME}/.rustup/toolchains/${TRAVIS_RUST_VERSION}-x86_64-pc-windows-msvc/lib/rustlib/x86_64-pc-windows-msvc/lib
+    cp SDL2-2.0.8/lib/x64/*.dll .
+    rm SDL2-devel-2.0.8-VC.zip
+  elif [ ${TRAVIS_OS_NAME} == "osx" ]
+  then
+    brew update && brew install sdl2
+  fi
+
+before_script:
+- export PATH=$PATH:/home/travis/.cargo/bin
+- export RUSTFLAGS="-D warnings"
+- rustup component add rustfmt-preview
+
+# Generate documentation, compile the engine, run tests.
+script:
+- |
+  if [ ${TRAVIS_RUST_VERSION} == "stable" ]
+  then
+    echo "Verifying formatting"
+    cargo fmt --all -- --check || exit 1
+  fi
+- |
+  echo "Build and test"
+  cargo test --all || exit 1
