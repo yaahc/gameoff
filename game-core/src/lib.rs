@@ -40,7 +40,7 @@ impl<'s> System<'s> for MovementSystem {
                 let goal_x = transform.translation.x + x_move as f32 * 5.0;
                 let goal_y = transform.translation.y + y_move as f32 * 5.0;
 
-                let tile_y = (-goal_y as u32 / 32) as usize;
+                let tile_y = (goal_y as u32 / 32) as usize;
                 let tile_x = (goal_x as u32 / 32) as usize;
 
                 if passable.tile_matrix[tile_y][tile_x] {
@@ -53,6 +53,21 @@ impl<'s> System<'s> for MovementSystem {
 }
 
 fn load_sprite_sheet(world: &mut World, png_path: &str, ron_path: &str) -> SpriteSheetHandle {
+    let texture_id = load_texture(world, png_path);
+
+    let loader = world.read_resource::<Loader>();
+    let sprite_sheet_store = world.read_resource::<AssetStorage<SpriteSheet>>();
+    loader.load(
+        ron_path,
+        SpriteSheetFormat,
+        texture_id,
+        (),
+        &sprite_sheet_store,
+    )
+}
+
+/// Loads texture into world and returns texture id.
+fn load_texture(world: &mut World, png_path: &str) -> u64 {
     let texture_handle = {
         let loader = world.read_resource::<Loader>();
         let texture_storage = world.read_resource::<AssetStorage<Texture>>();
@@ -69,15 +84,7 @@ fn load_sprite_sheet(world: &mut World, png_path: &str, ron_path: &str) -> Sprit
     let texture_id = material_texture_set.len() as u64;
     material_texture_set.insert(texture_id, texture_handle);
 
-    let loader = world.read_resource::<Loader>();
-    let sprite_sheet_store = world.read_resource::<AssetStorage<SpriteSheet>>();
-    loader.load(
-        ron_path,
-        SpriteSheetFormat,
-        texture_id,
-        (),
-        &sprite_sheet_store,
-    )
+    texture_id
 }
 
 use amethyst::renderer::Sprite;
@@ -103,24 +110,7 @@ fn load_map_sprites(world: &mut World) {
         (left, top)
     };
 
-    let texture_handle = {
-        let loader = world.read_resource::<Loader>();
-        let texture_storage = world.read_resource::<AssetStorage<Texture>>();
-        loader.load(
-            image.source.clone(),
-            PngFormat,
-            TextureMetadata::srgb_scale(),
-            (),
-            &texture_storage,
-        )
-    };
-
-    let texture_id = {
-        let mut material_texture_set = world.write_resource::<MaterialTextureSet>();
-        let texture_id = material_texture_set.len() as u64;
-        material_texture_set.insert(texture_id, texture_handle);
-        texture_id
-    };
+    let texture_id = load_texture(world, &image.source);
 
     let handle = {
         let loader = world.read_resource::<Loader>();
@@ -154,16 +144,19 @@ fn load_map_sprites(world: &mut World) {
         )
     };
 
-    let mut left = 0.0;
-    let mut top = 0.0;
+    let mut left = (tileset.tile_width / 2) as f32;
+    let mut top = (tileset.tile_height / 2) as f32;
 
     let layer = &map.layers[0];
     let mut passable: Vec<Vec<bool>> = Vec::with_capacity(layer.tiles.len());
-    for row in &layer.tiles {
+
+    for row in layer.tiles.iter().rev() {
         let mut passable_row: Vec<bool> = Vec::with_capacity(row.len());
+
         for tile_id in row {
-            passable_row.push(*tile_id != 30);
-            if *tile_id != 30 && *tile_id != 0 {
+            passable_row.push(*tile_id == 10);
+
+            if *tile_id != 31 && *tile_id != 0 {
                 let mut transform = Transform::default();
                 transform.translation.z = -1.0;
                 transform.translation.x = left;
@@ -181,9 +174,11 @@ fn load_map_sprites(world: &mut World) {
 
             left += tileset.tile_width as f32;
         }
+
         passable.push(passable_row);
-        left = 0.0;
-        top -= tileset.tile_height as f32;
+
+        left = (tileset.tile_width / 2) as f32;
+        top += tileset.tile_height as f32;
     }
 
     world.add_resource(PassableTiles {
@@ -233,7 +228,7 @@ fn init_reference_sprite(world: &mut World, sprite_sheet: &SpriteSheetHandle) ->
 fn init_player(world: &mut World, sprite_sheet: &SpriteSheetHandle) -> Entity {
     let mut transform = Transform::default();
     transform.translation.x = 32.0 * 70.0;
-    transform.translation.y = -32.0 * 50.0;
+    transform.translation.y = 32.0 * 50.0;
 
     let sprite = SpriteRender {
         sprite_sheet: sprite_sheet.clone(),
