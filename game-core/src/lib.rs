@@ -28,15 +28,26 @@ impl<'s> System<'s> for MovementSystem {
         ReadStorage<'s, Player>,
         WriteStorage<'s, Transform>,
         Read<'s, InputHandler<String, String>>,
+        Option<Read<'s, PassableTiles>>,
     );
 
-    fn run(&mut self, (players, mut transforms, input): Self::SystemData) {
-        let x_move = input.axis_value("entity_x").unwrap();
-        let y_move = input.axis_value("entity_y").unwrap();
+    fn run(&mut self, (players, mut transforms, input, passable): Self::SystemData) {
+        if let Some(passable) = passable {
+            let x_move = input.axis_value("entity_x").unwrap();
+            let y_move = input.axis_value("entity_y").unwrap();
 
-        for (_, transform) in (&players, &mut transforms).join() {
-            transform.translation.x += x_move as f32 * 5.0;
-            transform.translation.y += y_move as f32 * 5.0;
+            for (_, transform) in (&players, &mut transforms).join() {
+                let goal_x = transform.translation.x + x_move as f32 * 5.0;
+                let goal_y = transform.translation.y + y_move as f32 * 5.0;
+
+                let tile_y = (-goal_y as u32 / 32) as usize;
+                let tile_x = (goal_x as u32 / 32) as usize;
+
+                if passable.tile_matrix[tile_y][tile_x] {
+                    transform.translation.x = goal_x;
+                    transform.translation.y = goal_y;
+                }
+            }
         }
     }
 }
@@ -147,8 +158,11 @@ fn load_map_sprites(world: &mut World) {
     let mut top = 0.0;
 
     let layer = &map.layers[0];
+    let mut passable: Vec<Vec<bool>> = Vec::with_capacity(layer.tiles.len());
     for row in &layer.tiles {
+        let mut passable_row: Vec<bool> = Vec::with_capacity(row.len());
         for tile_id in row {
+            passable_row.push(*tile_id != 30);
             if *tile_id != 30 && *tile_id != 0 {
                 let mut transform = Transform::default();
                 transform.translation.z = -1.0;
@@ -167,9 +181,18 @@ fn load_map_sprites(world: &mut World) {
 
             left += tileset.tile_width as f32;
         }
+        passable.push(passable_row);
         left = 0.0;
         top -= tileset.tile_height as f32;
     }
+
+    world.add_resource(PassableTiles {
+        tile_matrix: passable,
+    });
+}
+
+pub struct PassableTiles {
+    pub tile_matrix: Vec<Vec<bool>>,
 }
 
 // Initialize a background
@@ -209,8 +232,8 @@ fn init_reference_sprite(world: &mut World, sprite_sheet: &SpriteSheetHandle) ->
 
 fn init_player(world: &mut World, sprite_sheet: &SpriteSheetHandle) -> Entity {
     let mut transform = Transform::default();
-    transform.translation.x = 0.0;
-    transform.translation.y = 0.0;
+    transform.translation.x = 32.0 * 70.0;
+    transform.translation.y = -32.0 * 50.0;
 
     let sprite = SpriteRender {
         sprite_sheet: sprite_sheet.clone(),
