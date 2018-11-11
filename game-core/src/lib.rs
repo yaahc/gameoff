@@ -1,5 +1,6 @@
 extern crate amethyst;
 
+use amethyst::utils::application_root_dir;
 use amethyst::utils::ortho_camera::CameraNormalizeMode;
 use amethyst::utils::ortho_camera::CameraOrtho;
 use amethyst::{
@@ -91,7 +92,8 @@ use amethyst::renderer::Sprite;
 use std::path::Path;
 
 fn load_map_sprites(world: &mut World) {
-    let file = Path::new("./resources/testmap.tmx");
+    let fname = format!("{}/resources/testmap.tmx", application_root_dir());
+    let file = Path::new(&fname);
     let map = tiled::parse_file(&file).unwrap();
 
     let tileset = &map.tilesets[0];
