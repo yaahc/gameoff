@@ -10,7 +10,7 @@ use amethyst::{
         SpriteSheetHandle, Texture, TextureMetadata, Transparent,
     },
 };
-use component::Player;
+use component::{Enemy, Player};
 
 pub struct Loader;
 
@@ -25,7 +25,8 @@ impl<'a, 'b> SimpleState<'a, 'b> for Loader {
         crate::map::load_map_sprites(world);
         let _background = init_background_sprite(world, &background_sprite_sheet_handle);
         let _reference = init_reference_sprite(world, &circle_sprite_sheet_handle);
-        let parent = init_player(world, &circle_sprite_sheet_handle);
+        let parent = Player::new(world, &circle_sprite_sheet_handle);
+        let _enemy = Enemy::new(world, &circle_sprite_sheet_handle);
         init_camera(world, parent);
     }
 }
@@ -95,27 +96,6 @@ fn init_reference_sprite(world: &mut World, sprite_sheet: &SpriteSheetHandle) ->
     world
         .create_entity()
         .with(transform)
-        .with(sprite)
-        .with(Transparent)
-        .build()
-}
-
-fn init_player(world: &mut World, sprite_sheet: &SpriteSheetHandle) -> Entity {
-    let mut transform = Transform::default();
-    transform.translation.x = 32.0 * 70.0;
-    transform.translation.y = 32.0 * 50.0;
-
-    let sprite = SpriteRender {
-        sprite_sheet: sprite_sheet.clone(),
-        sprite_number: 1,
-        flip_horizontal: false,
-        flip_vertical: false,
-    };
-
-    world
-        .create_entity()
-        .with(transform)
-        .with(Player)
         .with(sprite)
         .with(Transparent)
         .build()

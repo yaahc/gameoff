@@ -11,7 +11,7 @@ use amethyst::{
     utils::application_root_dir,
 };
 use game_core::system::Loader;
-use game_core::system::Movement;
+use game_core::system::{enemy, player};
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -33,7 +33,8 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(
             InputBundle::<String, String>::new()
                 .with_bindings_from_file(format!("{}/input.ron", root))?,
-        )?.with(Movement, "movement", &[])
+        )?.with(player::Movement, "player-movement", &[])
+        .with(enemy::Movement, "enemy-movement", &[])
         .with(
             amethyst::utils::ortho_camera::CameraOrthoSystem::default(),
             "OrthoCamera",

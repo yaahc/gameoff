@@ -22,6 +22,7 @@ impl<'s> System<'s> for Movement {
             let y_move = input.axis_value("entity_y").unwrap();
 
             for (_, transform) in (&players, &mut transforms).join() {
+                println!("player: {:?}", transform);
                 let goal_x = transform.translation.x + x_move as f32 * 5.0;
                 let goal_y = transform.translation.y + y_move as f32 * 5.0;
 
