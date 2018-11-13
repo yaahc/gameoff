@@ -10,8 +10,8 @@ use amethyst::{
     },
     utils::application_root_dir,
 };
-use game_core::Example;
-use game_core::MovementSystem;
+use game_core::system::Loader;
+use game_core::system::Movement;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -33,7 +33,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(
             InputBundle::<String, String>::new()
                 .with_bindings_from_file(format!("{}/input.ron", root))?,
-        )?.with(MovementSystem, "movement", &[])
+        )?.with(Movement, "movement", &[])
         .with(
             amethyst::utils::ortho_camera::CameraOrthoSystem::default(),
             "OrthoCamera",
@@ -44,7 +44,7 @@ fn main() -> amethyst::Result<()> {
                 .with_sprite_visibility_sorting(&[]), // Let's us use the `Transparent` component
         )?;
 
-    let mut game = Application::build(root, Example)?.build(game_data)?;
+    let mut game = Application::build(root, Loader)?.build(game_data)?;
     game.run();
     Ok(())
 }
