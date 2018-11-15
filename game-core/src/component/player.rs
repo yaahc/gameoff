@@ -1,3 +1,4 @@
+use amethyst::core::cgmath::Deg;
 use amethyst::ecs::{Component, HashMapStorage};
 use amethyst::{
     core::Transform,
@@ -30,6 +31,7 @@ impl Player {
         let mut transform = Transform::default();
         transform.translation.x = 32.0 * 70.0;
         transform.translation.y = 32.0 * 50.0;
+        transform.set_rotation(Deg(0.0), Deg(0.0), Deg(45.0));
 
         let sprite = SpriteRender {
             sprite_sheet: sprite_sheet.clone(),

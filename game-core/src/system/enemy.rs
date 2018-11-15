@@ -46,7 +46,7 @@ impl<'s> System<'s> for Spawner {
     ) {
         let count = (&enemies).join().count();
 
-        if count < 5 {
+        if count < 1 {
             let mut enemy_positions = vec![];
             let range = Uniform::new_inclusive(-5.0 * 32.0, 5.0 * 32.0);
             let mut rng = rand::thread_rng();
