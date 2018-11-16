@@ -1,7 +1,9 @@
 extern crate amethyst;
 
 mod component;
+mod load;
 mod map;
+pub mod state;
 pub mod system;
 
 #[cfg(test)]

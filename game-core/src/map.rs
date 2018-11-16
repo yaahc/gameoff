@@ -6,7 +6,7 @@ use amethyst::{
     prelude::*,
     renderer::{SpriteRender, SpriteSheet},
 };
-use crate::system::loader::load_texture;
+use crate::load;
 use std::path::Path;
 
 pub fn load_map_sprites(world: &mut World) {
@@ -30,7 +30,7 @@ pub fn load_map_sprites(world: &mut World) {
         (left, top)
     };
 
-    let texture_id = load_texture(world, &image.source);
+    let texture_id = load::texture(world, &image.source);
 
     let handle = {
         let loader = world.read_resource::<Loader>();

@@ -10,7 +10,7 @@ use amethyst::{
     },
     utils::application_root_dir,
 };
-use game_core::system::Loader;
+use game_core::state::Game;
 use game_core::system::{enemy, player};
 use std::env;
 
@@ -50,7 +50,7 @@ fn main() -> amethyst::Result<()> {
                 .with_sprite_visibility_sorting(&[]), // Let's us use the `Transparent` component
         )?;
 
-    let mut game = Application::build(root, Loader)?.build(game_data)?;
+    let mut game = Application::build(root, Game)?.build(game_data)?;
     game.run();
     Ok(())
 }
