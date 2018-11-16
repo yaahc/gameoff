@@ -11,8 +11,6 @@ impl<'s> System<'s> for Movement {
     type SystemData = (ReadStorage<'s, Enemy>, WriteStorage<'s, Transform>);
 
     fn run(&mut self, (players, mut transforms): Self::SystemData) {
-        for (_, transform) in (&players, &mut transforms).join() {
-            println!("enemy: {:?}", transform);
-        }
+        for (_, transform) in (&players, &mut transforms).join() {}
     }
 }

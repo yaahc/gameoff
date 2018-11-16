@@ -22,16 +22,14 @@ impl<'s> System<'s> for Movement {
             let y_move = input.axis_value("entity_y").unwrap();
 
             for (_, transform) in (&players, &mut transforms).join() {
-                println!("player: {:?}", transform);
-                let goal_x = transform.translation.x + x_move as f32 * 5.0;
-                let goal_y = transform.translation.y + y_move as f32 * 5.0;
+                let goal_x = transform.translation().x + x_move as f32 * 5.0;
+                let goal_y = transform.translation().y + y_move as f32 * 5.0;
 
                 let tile_y = (goal_y as u32 / 32) as usize;
                 let tile_x = (goal_x as u32 / 32) as usize;
 
                 if passable.tile_matrix[tile_y][tile_x] {
-                    transform.translation.x = goal_x;
-                    transform.translation.y = goal_y;
+                    transform.set_x(goal_x).set_y(goal_y);
                 }
             }
         }

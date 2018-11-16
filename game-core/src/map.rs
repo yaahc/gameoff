@@ -30,7 +30,7 @@ pub fn load_map_sprites(world: &mut World) {
         (left, top)
     };
 
-    let texture_id = load::texture(world, &image.source);
+    let texture = load::texture(world, &image.source);
 
     let handle = {
         let loader = world.read_resource::<Loader>();
@@ -56,7 +56,7 @@ pub fn load_map_sprites(world: &mut World) {
 
         loader.load_from_data(
             SpriteSheet {
-                texture_id,
+                texture,
                 sprites: sprites,
             },
             (),
@@ -78,9 +78,7 @@ pub fn load_map_sprites(world: &mut World) {
 
             if *tile_id != 30 && *tile_id != 0 {
                 let mut transform = Transform::default();
-                transform.translation.z = -1.0;
-                transform.translation.x = left;
-                transform.translation.y = top;
+                transform.set_z(-1.0).set_x(left).set_y(top);
 
                 let sprite = SpriteRender {
                     sprite_sheet: handle.clone(),

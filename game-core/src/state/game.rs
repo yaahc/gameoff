@@ -33,7 +33,7 @@ mod init {
     // Initialize a background
     pub fn background_sprite(world: &mut World, sprite_sheet: &SpriteSheetHandle) -> Entity {
         let mut transform = Transform::default();
-        transform.translation.z = -10.0;
+        transform.set_z(-10.0);
 
         let sprite = SpriteRender {
             sprite_sheet: sprite_sheet.clone(),
@@ -47,8 +47,7 @@ mod init {
     // Initialize a sprite as a reference point at a fixed location
     pub fn reference_sprite(world: &mut World, sprite_sheet: &SpriteSheetHandle) -> Entity {
         let mut transform = Transform::default();
-        transform.translation.x = 100.0;
-        transform.translation.y = 0.0;
+        transform.set_x(100.0);
 
         let sprite = SpriteRender {
             sprite_sheet: sprite_sheet.clone(),
@@ -67,11 +66,11 @@ mod init {
 
     pub fn camera(world: &mut World, parent: Entity) {
         let mut transform = Transform::default();
-        transform.translation.z = 2.0;
-        transform.translation.x = -256.0;
-        transform.translation.y = -256.0;
-        transform.scale.x = 512.0;
-        transform.scale.y = 512.0;
+        transform
+            .set_z(2.0)
+            .set_x(-256.0)
+            .set_y(-256.0)
+            .set_scale(512.0, 512.0, 1.0);
 
         world.register::<CameraOrtho>();
 
