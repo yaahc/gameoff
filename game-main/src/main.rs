@@ -12,9 +12,14 @@ use amethyst::{
 };
 use game_core::system::Loader;
 use game_core::system::{enemy, player};
+use std::env;
 
 fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
+    if let Err(env::VarError::NotPresent) = env::var("RUST_LOG") {
+        env::set_var("RUST_LOG", "debug,gfx_device_gl=warn,amethyst_assets=warn");
+    }
+
+    env_logger::init();
 
     let root = format!("{}/resources", application_root_dir());
     let config = DisplayConfig::load(format!("{}/display_config.ron", root));
