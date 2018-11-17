@@ -4,6 +4,7 @@ use amethyst::{
     renderer::{SpriteRender, Transparent},
 };
 use crate::component::Ally;
+use crate::component::Animation;
 use crate::component::Player;
 use rand::distributions::{Distribution, Uniform};
 
@@ -30,12 +31,22 @@ impl<'s> System<'s> for Spawner {
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, Transparent>,
         Entities<'s>,
+        WriteStorage<'s, Animation>,
     );
 
     fn run(
         &mut self,
-        (players, textures, mut transforms, mut allies, mut sprites, mut transparent, entities): Self::SystemData,
-){
+        (
+            players,
+            textures,
+            mut transforms,
+            mut allies,
+            mut sprites,
+            mut transparent,
+            entities,
+            mut animation,
+        ): Self::SystemData,
+    ) {
         let count = (&allies).join().count();
 
         if count < 5 {
@@ -60,12 +71,20 @@ impl<'s> System<'s> for Spawner {
                     flip_vertical: false,
                 };
 
+                let anim = Animation {
+                    total_frames: 8,
+                    max_count_till_next_frame: 0.1,
+                    frame_life_time_count: 0.1,
+                    current_frame: 0,
+                };
+
                 entities
                     .build_entity()
                     .with(pos, &mut transforms)
                     .with(Ally::default(), &mut allies)
                     .with(sprite, &mut sprites)
                     .with(Transparent, &mut transparent)
+                    .with(anim, &mut animation)
                     .build();
             }
         }

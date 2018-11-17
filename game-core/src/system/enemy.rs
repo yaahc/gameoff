@@ -3,6 +3,7 @@ use amethyst::{
     ecs::{Entities, Join, Read, ReadStorage, System, WriteStorage},
     renderer::{SpriteRender, Transparent},
 };
+use crate::component::Animation;
 use crate::component::Enemy;
 use crate::component::Player;
 use rand::distributions::{Distribution, Uniform};
@@ -12,8 +13,8 @@ pub struct Movement;
 impl<'s> System<'s> for Movement {
     type SystemData = (ReadStorage<'s, Enemy>, WriteStorage<'s, Transform>);
 
-    fn run(&mut self, (players, mut transforms): Self::SystemData) {
-        for (_, transform) in (&players, &mut transforms).join() {
+    fn run(&mut self, (enemy, mut transforms): Self::SystemData) {
+        for (_, transform) in (&enemy, &mut transforms).join() {
             println!("enemy: {:?}", transform);
         }
     }
@@ -30,12 +31,22 @@ impl<'s> System<'s> for Spawner {
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, Transparent>,
         Entities<'s>,
+        WriteStorage<'s, Animation>,
     );
 
     fn run(
         &mut self,
-        (players, textures, mut transforms, mut enemies, mut sprites, mut transparent, entities): Self::SystemData,
-){
+        (
+            players,
+            textures,
+            mut transforms,
+            mut enemies,
+            mut sprites,
+            mut transparent,
+            entities,
+            mut animation,
+        ): Self::SystemData,
+    ) {
         let count = (&enemies).join().count();
 
         if count < 5 {
@@ -58,12 +69,20 @@ impl<'s> System<'s> for Spawner {
                     flip_vertical: false,
                 };
 
+                let anim = Animation {
+                    total_frames: 2,
+                    max_count_till_next_frame: 0.7,
+                    frame_life_time_count: 0.7,
+                    current_frame: 0,
+                };
+
                 entities
                     .build_entity()
                     .with(pos, &mut transforms)
                     .with(Enemy::default(), &mut enemies)
                     .with(sprite, &mut sprites)
                     .with(Transparent, &mut transparent)
+                    .with(anim, &mut animation)
                     .build();
             }
         }

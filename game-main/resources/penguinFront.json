@@ -1,1 +1,54 @@
-{"frames":{"penguinFront0.png":{"frame":{"x":0,"y":0,"w":32,"h":32},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":32,"h":32},"sourceSize":{"w":32,"h":32}},"penguinFront1.png":{"frame":{"x":0,"y":32,"w":32,"h":32},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":32,"h":32},"sourceSize":{"w":32,"h":32}}},"meta":{"app":"https://github.com/piskelapp/piskel/","version":"1.0","image":"penguinFront.png","format":"RGBA8888","size":{"w":32,"h":64}}}
+{
+    "frames": {
+        "penguinFront0.png": {
+            "frame": {
+                "h": 32,
+                "w": 32,
+                "x": 0,
+                "y": 0
+            },
+            "rotated": false,
+            "sourceSize": {
+                "h": 32,
+                "w": 32
+            },
+            "spriteSourceSize": {
+                "h": 32,
+                "w": 32,
+                "x": 0,
+                "y": 0
+            },
+            "trimmed": false
+        },
+        "penguinFront1.png": {
+            "frame": {
+                "h": 32,
+                "w": 32,
+                "x": 0,
+                "y": 32
+            },
+            "rotated": false,
+            "sourceSize": {
+                "h": 32,
+                "w": 32
+            },
+            "spriteSourceSize": {
+                "h": 32,
+                "w": 32,
+                "x": 0,
+                "y": 0
+            },
+            "trimmed": false
+        }
+    },
+    "meta": {
+        "app": "https://github.com/piskelapp/piskel/",
+        "format": "RGBA8888",
+        "image": "penguinFront.png",
+        "size": {
+            "h": 64,
+            "w": 32
+        },
+        "version": "1.0"
+    }
+}
