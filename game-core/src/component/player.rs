@@ -1,4 +1,4 @@
-use amethyst::ecs::{Component, NullStorage};
+use amethyst::ecs::{Component, HashMapStorage};
 use amethyst::{
     core::Transform,
     ecs::Entity,
@@ -6,11 +6,18 @@ use amethyst::{
     renderer::{SpriteRender, SpriteSheetHandle, Transparent},
 };
 
-#[derive(Default)]
-pub struct Player;
+pub struct Player {
+    pub hp: u32,
+}
+
+impl Default for Player {
+    fn default() -> Self {
+        Self { hp: 10 }
+    }
+}
 
 impl Component for Player {
-    type Storage = NullStorage<Self>;
+    type Storage = HashMapStorage<Self>;
 }
 
 impl Player {
@@ -29,7 +36,7 @@ impl Player {
         world
             .create_entity()
             .with(transform)
-            .with(Player)
+            .with(Player::default())
             .with(sprite)
             .with(Transparent)
             .build()

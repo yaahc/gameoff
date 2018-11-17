@@ -6,18 +6,31 @@ use amethyst::{
         TextureMetadata,
     },
 };
+use std::collections::HashMap;
+
+#[derive(Default)]
+pub struct LoadedTextures {
+    pub textures: HashMap<String, SpriteSheetHandle>,
+}
+
 pub fn sprite_sheet(world: &mut World, png_path: &str, ron_path: &str) -> SpriteSheetHandle {
     let texture_id = super::load::texture(world, png_path);
 
     let loader = world.read_resource::<Loader>();
     let sprite_sheet_store = world.read_resource::<AssetStorage<SpriteSheet>>();
-    loader.load(
+    let handle = loader.load(
         ron_path,
         SpriteSheetFormat,
         texture_id,
         (),
         &sprite_sheet_store,
-    )
+    );
+
+    let mut my = world.write_resource::<LoadedTextures>();
+    let old_val = my.textures.insert(png_path.into(), handle.clone());
+    assert!(old_val.is_none());
+
+    handle
 }
 
 /// Loads texture into world and returns texture id.

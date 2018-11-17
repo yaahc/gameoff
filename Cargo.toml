@@ -3,6 +3,7 @@
 members = [
     "game-main",
     "game-core",
+    "piskel2amethyst",
 ]
 
 # [profile.release]

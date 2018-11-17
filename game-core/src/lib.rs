@@ -1,4 +1,5 @@
 extern crate amethyst;
+extern crate rand;
 
 mod component;
 mod load;
