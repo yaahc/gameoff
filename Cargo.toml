@@ -1,9 +1,15 @@
+cargo-features = ["profile-overrides"]
+
 [workspace]
 
 members = [
     "game-main",
     "game-core",
 ]
+
+
+[profile.dev.overrides."*"]
+opt-level = 3
 
 # [profile.release]
 # lto = true
