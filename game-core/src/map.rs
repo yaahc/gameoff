@@ -57,7 +57,7 @@ pub fn load_map_sprites(world: &mut World) {
         loader.load_from_data(
             SpriteSheet {
                 texture_id,
-                sprites: sprites,
+                sprites,
             },
             (),
             &sprite_sheet_store,

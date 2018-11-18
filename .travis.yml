@@ -22,6 +22,8 @@ matrix:
   exclude:
     - rust: beta
       os: osx
+    - rust: beta
+      os: windows
   fast_finish: true
   allow_failures:
   - rust: nightly
@@ -47,7 +49,7 @@ before_install:
 before_script:
 - export PATH=$PATH:/home/travis/.cargo/bin
 - export RUSTFLAGS="-D warnings"
-- rustup component add rustfmt-preview
+- rustup component add rustfmt-preview clippy-preview
 
 # Generate documentation, compile the engine, run tests.
 script:
@@ -56,6 +58,10 @@ script:
   then
     echo "Verifying formatting"
     cargo fmt --all -- --check || exit 1
+  fi
+  if [ ${TRAVIS_RUST_VERSION} == "beta" ]
+  then
+    cargo clippy --all-targets --all-features -- -D warnings
   fi
 - |
   echo "Build and test"

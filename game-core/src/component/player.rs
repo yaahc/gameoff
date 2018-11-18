@@ -9,11 +9,15 @@ use crate::component::Animation;
 
 pub struct Player {
     pub hp: u32,
+    pub num_allies: u32,
 }
 
 impl Default for Player {
     fn default() -> Self {
-        Self { hp: 10 }
+        Self {
+            hp: 10,
+            num_allies: 0,
+        }
     }
 }
 

@@ -1,11 +1,10 @@
 use amethyst::{
-    core::Transform,
+    core::cgmath::InnerSpace,
+    core::{Parent, Transform},
     ecs::{Entities, Join, Read, ReadStorage, System, WriteStorage},
     renderer::{SpriteRender, Transparent},
 };
-use crate::component::Ally;
-use crate::component::Animation;
-use crate::component::Player;
+use crate::component::{Ally, Animation, Player};
 use rand::distributions::{Distribution, Uniform};
 
 pub struct Movement;
@@ -13,9 +12,70 @@ pub struct Movement;
 impl<'s> System<'s> for Movement {
     type SystemData = (ReadStorage<'s, Ally>, WriteStorage<'s, Transform>);
 
-    fn run(&mut self, (players, mut transforms): Self::SystemData) {
-        for (_, transform) in (&players, &mut transforms).join() {
-            println!("ally: {:?}", transform);
+    fn run(&mut self, (allies, mut transforms): Self::SystemData) {
+        for (_, _transform) in (&allies, &mut transforms).join() {}
+    }
+}
+
+pub struct Grouper;
+
+impl<'s> System<'s> for Grouper {
+    type SystemData = (
+        ReadStorage<'s, Ally>,
+        WriteStorage<'s, Transform>,
+        WriteStorage<'s, Parent>,
+        WriteStorage<'s, Player>,
+        Entities<'s>,
+    );
+
+    fn run(
+        &mut self,
+        (allies, mut transforms, mut parents, mut players, entities): Self::SystemData,
+    ) {
+        let get_relative_position = |mut num_allies: u32| {
+            num_allies %= 9;
+
+            let ind = if num_allies == 4 {
+                num_allies + 1 // skip player position
+            } else {
+                num_allies
+            } as i32;
+
+            let row = ind / 3 - 1;
+            let col = ind % 3 - 1;
+
+            (row as f32 * 32.0, col as f32 * 32.0)
+        };
+
+        let (p_transform, allies_count, p_entity) = {
+            let (t, p, e) = (&transforms, &players, &entities)
+                .join()
+                .next()
+                .expect("no player found");
+            (t.clone(), p.num_allies, e)
+        };
+
+        let mut orphans = vec![];
+
+        for (_, _, transform, entity) in (&allies, !&parents, &mut transforms, &entities).join() {
+            let d = p_transform.translation - transform.translation;
+            let merge_dist = f32::powf(32.0 * 1.0, 2.0);
+            if d.truncate().magnitude2() < merge_dist {
+                let (new_x, new_y) = get_relative_position(allies_count);
+
+                transform.translation.x = new_x;
+                transform.translation.y = new_y;
+
+                orphans.push(entity);
+            }
+        }
+
+        players.get_mut(p_entity).unwrap().num_allies += orphans.len() as u32;
+
+        for entity in orphans {
+            parents
+                .insert(entity, Parent { entity: p_entity })
+                .expect("the unexpected");
         }
     }
 }
@@ -25,6 +85,7 @@ pub struct Spawner;
 impl<'s> System<'s> for Spawner {
     type SystemData = (
         ReadStorage<'s, Player>,
+        ReadStorage<'s, Parent>,
         Read<'s, crate::load::LoadedTextures>,
         WriteStorage<'s, Transform>,
         WriteStorage<'s, Ally>,
@@ -38,6 +99,7 @@ impl<'s> System<'s> for Spawner {
         &mut self,
         (
             players,
+            parents,
             textures,
             mut transforms,
             mut allies,
@@ -47,7 +109,7 @@ impl<'s> System<'s> for Spawner {
             mut animation,
         ): Self::SystemData,
     ) {
-        let count = (&allies).join().count();
+        let count = (&allies, !&parents).join().count();
 
         if count < 5 {
             let mut ally_positions = vec![];

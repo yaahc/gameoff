@@ -28,7 +28,7 @@ impl Component for Animation {
 impl Animation {
     pub fn frame_update(&mut self, sprite_render: &mut SpriteRender, seconds: f32) {
         if self.frame_life_time_count > 0.0 {
-            self.frame_life_time_count = self.frame_life_time_count - seconds;
+            self.frame_life_time_count -= seconds;
         } else {
             self.frame_life_time_count = self.max_count_till_next_frame;
             self.current_frame = (self.current_frame + 1) % self.total_frames;

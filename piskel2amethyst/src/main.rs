@@ -77,7 +77,7 @@ fn main() -> Result<(), Error> {
         sprites: vec![],
     };
 
-    for (_, sprite) in &u.frames {
+    for sprite in u.frames.values() {
         out.sprites.push(AmethystSprite {
             x: f64::from(sprite.frame.x),
             y: f64::from(sprite.frame.y),

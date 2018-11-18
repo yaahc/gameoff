@@ -52,15 +52,12 @@ impl<'s> System<'s> for Attack {
         for (_, p_transform) in (&players, &transforms).join() {
             for (enemy, e_transform, enemy_entity) in (&mut enemies, &transforms, &*entities).join()
             {
-                println!("attacking");
                 if e_transform.translation.x < p_transform.translation.x
                     && e_transform.translation.y < p_transform.translation.y
                 {
-                    println!("decrementing");
                     if enemy.hp > 0 {
                         enemy.hp -= 1;
                     } else {
-                        println!("deleting enemy");
                         let _r = entities.delete(enemy_entity);
                     }
                 }
