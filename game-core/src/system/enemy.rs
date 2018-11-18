@@ -3,9 +3,7 @@ use amethyst::{
     ecs::{Entities, Join, Read, ReadStorage, System, WriteStorage},
     renderer::{SpriteRender, Transparent},
 };
-use crate::component::Animation;
-use crate::component::Enemy;
-use crate::component::Player;
+use crate::component::{Animation, Enemy, Player};
 use rand::distributions::{Distribution, Uniform};
 
 pub struct Movement;
@@ -13,15 +11,14 @@ pub struct Movement;
 impl<'s> System<'s> for Movement {
     type SystemData = (ReadStorage<'s, Enemy>, WriteStorage<'s, Transform>);
 
-    fn run(&mut self, (enemy, mut transforms): Self::SystemData) {
-        for (_, transform) in (&enemy, &mut transforms).join() {
-            println!("enemy: {:?}", transform);
-        }
+    fn run(&mut self, (players, mut transforms): Self::SystemData) {
+        for (_, _transform) in (&players, &mut transforms).join() {}
     }
 }
 
 pub struct Spawner;
 
+#[allow(type_complexity)]
 impl<'s> System<'s> for Spawner {
     type SystemData = (
         ReadStorage<'s, Player>,

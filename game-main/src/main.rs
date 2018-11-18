@@ -42,6 +42,7 @@ fn main() -> amethyst::Result<()> {
         .with(enemy::Movement, "enemy-movement", &[])
         .with(enemy::Spawner, "enemy-spawner", &[])
         .with(ally::Movement, "ally-movement", &[])
+        .with(ally::Grouper, "ally-grouper", &[])
         .with(ally::Spawner, "ally-spawner", &[])
         .with(player::Attack, "player-attack", &[])
         .with(animation::Frame, "frame-animation", &[])
