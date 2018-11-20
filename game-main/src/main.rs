@@ -11,7 +11,7 @@ use amethyst::{
     utils::application_root_dir,
 };
 use game_core::state::Game;
-use game_core::system::{ally, animation, enemy, player};
+use game_core::system::{ally, animation, camera, enemy, player};
 use std::env;
 
 fn main() -> amethyst::Result<()> {
@@ -40,6 +40,7 @@ fn main() -> amethyst::Result<()> {
                 .with_bindings_from_file(format!("{}/input.ron", root))?,
         )?.with(player::Movement, "player-movement", &[])
         .with(enemy::Movement, "enemy-movement", &[])
+        .with(camera::Movement, "camera-movement", &[])
         .with(enemy::Spawner, "enemy-spawner", &[])
         .with(ally::Movement, "ally-movement", &[])
         .with(ally::Grouper, "ally-grouper", &[])
