@@ -28,6 +28,10 @@ matrix:
   allow_failures:
   - rust: nightly
 
+branches:
+  only:
+  - master
+
 cache:
   cargo: true
   apt: true

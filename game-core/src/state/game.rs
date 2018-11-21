@@ -13,6 +13,7 @@ impl<'a, 'b> SimpleState<'a, 'b> for Game {
         let player_sprite_sheet_handle = load::sprite_sheet(world, "FRONT.png", "FRONT.ron");
         let _penguin_sprite_sheet_handle =
             load::sprite_sheet(world, "penguinFront.png", "penguinFront.ron");
+        let _ = load::sprite_sheet(world, "bubble.png", "bubble.ron");
 
         crate::map::load_map_sprites(world);
         let parent = Player::new(world, &player_sprite_sheet_handle);
@@ -21,9 +22,13 @@ impl<'a, 'b> SimpleState<'a, 'b> for Game {
 }
 
 mod init {
-    use amethyst::utils::ortho_camera::CameraNormalizeMode;
-    use amethyst::utils::ortho_camera::CameraOrtho;
-    use amethyst::{core::Transform, ecs::Entity, prelude::*, renderer::Camera};
+    use amethyst::{
+        core::Transform,
+        ecs::Entity,
+        prelude::*,
+        renderer::Camera,
+        utils::ortho_camera::{CameraNormalizeMode, CameraOrtho},
+    };
 
     pub fn camera(world: &mut World, parent: Entity) {
         let mut transform = {
@@ -31,13 +36,13 @@ mod init {
             transforms.get(parent).unwrap().clone()
         };
 
+        world.register::<CameraOrtho>();
+
         transform.translation.z = 2.0;
         transform.translation.x -= 256.0;
         transform.translation.y -= 256.0;
         transform.scale.x = 512.0;
         transform.scale.y = 512.0;
-
-        world.register::<CameraOrtho>();
 
         world
             .create_entity()

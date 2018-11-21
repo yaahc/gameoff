@@ -11,7 +11,7 @@ use amethyst::{
     utils::application_root_dir,
 };
 use game_core::state::Game;
-use game_core::system::{ally, animation, camera, enemy, player};
+use game_core::system::{ally, animation, camera, enemy, player, projectile};
 use std::env;
 
 fn main() -> amethyst::Result<()> {
@@ -47,6 +47,7 @@ fn main() -> amethyst::Result<()> {
         .with(ally::Spawner, "ally-spawner", &[])
         .with(player::Attack, "player-attack", &[])
         .with(animation::Frame, "frame-animation", &[])
+        .with(projectile::Movement, "projectile-movement", &[])
         .with(
             amethyst::utils::ortho_camera::CameraOrthoSystem::default(),
             "OrthoCamera",
