@@ -37,7 +37,7 @@ impl SimpleState<'static, 'static> for Menu {
         data: &mut StateData<GameData>,
     ) -> Trans<GameData<'static, 'static>, StateEvent> {
         let world = &mut data.world;
-        let mut dispatcher: Dispatcher<'static, 'static> = DispatcherBuilder::new()
+        let mut dispatcher: Dispatcher = DispatcherBuilder::new()
             .with(player::Movement, "player-movement", &[])
             .with(enemy::Movement, "enemy-movement", &[])
             .with(camera::Movement, "camera-movement", &[])
