@@ -1,35 +1,48 @@
 use amethyst::{
-    core::cgmath::Vector2,
+    core::cgmath::{InnerSpace, Vector2},
     core::Transform,
     ecs::{Entities, Join, Read, ReadStorage, System, WriteStorage},
     input::InputHandler,
     renderer::{SpriteRender, Transparent},
 };
 use crate::component::{Animation, Enemy, Motion, Player, Projectile};
+use rand::distributions::{Distribution, Uniform};
 
 pub struct Movement;
 
 impl<'s> System<'s> for Movement {
     type SystemData = (
-        ReadStorage<'s, Player>,
+        WriteStorage<'s, Player>,
         WriteStorage<'s, Transform>,
         Read<'s, InputHandler<String, String>>,
         Option<Read<'s, crate::map::PassableTiles>>,
     );
 
-    fn run(&mut self, (players, mut transforms, input, passable): Self::SystemData) {
+    fn run(&mut self, (mut players, mut transforms, input, passable): Self::SystemData) {
         if let Some(passable) = passable {
             let x_move = input.axis_value("entity_x").unwrap();
             let y_move = input.axis_value("entity_y").unwrap();
 
-            for (_, transform) in (&players, &mut transforms).join() {
+            for (player, transform) in (&mut players, &mut transforms).join() {
+                if x_move != 0.0 || y_move != 0.0 {
+                    player.last_direction = Vector2 {
+                        x: x_move as f32,
+                        y: y_move as f32,
+                    };
+                }
+
                 let goal_x = transform.translation.x + x_move as f32 * 5.0;
                 let goal_y = transform.translation.y + y_move as f32 * 5.0;
 
                 let tile_y = (goal_y as u32 / 32) as usize;
                 let tile_x = (goal_x as u32 / 32) as usize;
 
-                if passable.tile_matrix[tile_y][tile_x] {
+                if *passable
+                    .tile_matrix
+                    .get(tile_y)
+                    .and_then(|row| row.get(tile_x))
+                    .unwrap_or(&false)
+                {
                     transform.translation.x = goal_x;
                     transform.translation.y = goal_y;
                 }
@@ -72,11 +85,22 @@ impl<'s> System<'s> for Attack {
         ): Self::SystemData,
     ) {
         let mut bubble_transform = None;
-        for (_, p_transform) in (&players, &transforms).join() {
+        let mut bubble_dir = None;
+        for (player, p_transform) in (&players, &transforms).join() {
             for (enemy, e_transform, enemy_entity) in (&mut enemies, &transforms, &*entities).join()
             {
                 if input.action_is_down("jump") == Some(true) {
                     bubble_transform = Some(p_transform.clone());
+
+                    let range = Uniform::new_inclusive(-5.0 * 32.0, 5.0 * 32.0);
+                    let mut rng = rand::thread_rng();
+                    let perp = Vector2 {
+                        x: player.last_direction.y,
+                        y: -player.last_direction.x,
+                    };
+                    let perp = perp.normalize_to(range.sample(&mut rng));
+
+                    bubble_dir = Some(player.last_direction.normalize_to(32.0 * 23.0) + perp);
                 }
 
                 if e_transform.translation.x < p_transform.translation.x
@@ -107,9 +131,9 @@ impl<'s> System<'s> for Attack {
             };
 
             let motion = Motion {
-                vel: Vector2 { x: 1.0, y: 1.0 },
-                acc: Vector2 { x: 1.0, y: 1.0 },
-                min_vel: None,
+                vel: bubble_dir.unwrap(),
+                acc: bubble_dir.unwrap() * -2.0,
+                min_vel: Some(32.0),
                 max_vel: None,
             };
 
