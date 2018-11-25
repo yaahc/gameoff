@@ -8,3 +8,6 @@ members = [
 
 # [profile.release]
 # lto = true
+
+[profile.dev]
+opt-level = 3

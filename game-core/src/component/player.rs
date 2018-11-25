@@ -1,5 +1,6 @@
 use amethyst::ecs::{Component, HashMapStorage};
 use amethyst::{
+    core::cgmath::Vector2,
     core::Transform,
     ecs::Entity,
     prelude::*,
@@ -7,9 +8,11 @@ use amethyst::{
 };
 use crate::component::Animation;
 
+#[derive(Debug)]
 pub struct Player {
     pub hp: u32,
     pub num_allies: u32,
+    pub last_direction: Vector2<f32>,
 }
 
 impl Default for Player {
@@ -17,6 +20,7 @@ impl Default for Player {
         Self {
             hp: 10,
             num_allies: 0,
+            last_direction: Vector2 { x: 1.0, y: 1.0 },
         }
     }
 }

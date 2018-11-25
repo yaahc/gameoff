@@ -1,54 +1,14 @@
-use amethyst::prelude::*;
-use component::Player;
-use crate::load;
+use amethyst::{ecs::prelude::*, prelude::*};
 
-pub struct Game;
-
-impl<'a, 'b> SimpleState<'a, 'b> for Game {
-    fn on_start(&mut self, data: StateData<GameData>) {
-        let world = data.world;
-
-        world.add_resource(load::LoadedTextures::default());
-
-        let player_sprite_sheet_handle = load::sprite_sheet(world, "FRONT.png", "FRONT.ron");
-        let _penguin_sprite_sheet_handle =
-            load::sprite_sheet(world, "penguinFront.png", "penguinFront.ron");
-        let _ = load::sprite_sheet(world, "bubble.png", "bubble.ron");
-
-        crate::map::load_map_sprites(world);
-        let parent = Player::new(world, &player_sprite_sheet_handle);
-        init::camera(world, parent);
-    }
+pub struct Game<'a, 'b> {
+    pub dispatcher: Dispatcher<'a, 'b>,
 }
 
-mod init {
-    use amethyst::{
-        core::Transform,
-        ecs::Entity,
-        prelude::*,
-        renderer::Camera,
-        utils::ortho_camera::{CameraNormalizeMode, CameraOrtho},
-    };
+impl<'a, 'b> State<GameData<'a, 'b>, StateEvent> for Game<'a, 'b> {
+    fn update(&mut self, data: StateData<GameData<'a, 'b>>) -> Trans<GameData<'a, 'b>, StateEvent> {
+        data.data.update(&data.world);
+        self.dispatcher.dispatch(&data.world.res);
 
-    pub fn camera(world: &mut World, parent: Entity) {
-        let mut transform = {
-            let transforms = world.read_storage::<Transform>();
-            transforms.get(parent).unwrap().clone()
-        };
-
-        world.register::<CameraOrtho>();
-
-        transform.translation.z = 2.0;
-        transform.translation.x -= 256.0;
-        transform.translation.y -= 256.0;
-        transform.scale.x = 512.0;
-        transform.scale.y = 512.0;
-
-        world
-            .create_entity()
-            .with(CameraOrtho::normalized(CameraNormalizeMode::Contain))
-            .with(Camera::standard_2d())
-            .with(transform)
-            .build();
+        Trans::None
     }
 }
