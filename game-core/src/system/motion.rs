@@ -1,22 +1,21 @@
 use amethyst::{
     core::cgmath::{InnerSpace, Vector2},
     core::{timing::Time, Transform},
-    ecs::{Join, Read, ReadStorage, System, WriteStorage},
+    ecs::{Join, Read, System, WriteStorage},
 };
-use crate::component::{Motion, Projectile};
+use crate::component::Motion;
 
 pub struct Movement;
 
 impl<'s> System<'s> for Movement {
     type SystemData = (
-        ReadStorage<'s, Projectile>,
         WriteStorage<'s, Motion>,
         WriteStorage<'s, Transform>,
         Read<'s, Time>,
     );
 
-    fn run(&mut self, (projectiles, mut motions, mut transforms, time): Self::SystemData) {
-        for (_, motion, transform) in (&projectiles, &mut motions, &mut transforms).join() {
+    fn run(&mut self, (mut motions, mut transforms, time): Self::SystemData) {
+        for (motion, transform) in (&mut motions, &mut transforms).join() {
             let delta = time.delta_seconds();
             let distance = motion.vel * delta + 0.5 * motion.acc * delta.powf(2.0); // d = v*t + (a*t^2)/2
             if let Some(min_vel) = motion.min_vel {

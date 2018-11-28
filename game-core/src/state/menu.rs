@@ -47,7 +47,7 @@ impl SimpleState<'static, 'static> for Menu {
             .with(ally::Spawner, "ally-spawner", &[])
             .with(player::Attack, "player-attack", &[])
             .with(animation::Frame, "frame-animation", &[])
-            .with(projectile::Movement, "projectile-movement", &[])
+            .with(motion::Movement, "projectile-movement", &[])
             .build();
         dispatcher.setup(&mut world.res);
         Trans::Push(Box::new(Game { dispatcher }))

@@ -1,19 +1,95 @@
 use amethyst::{
-    core::cgmath::InnerSpace,
-    core::{Parent, Transform},
+    core::cgmath::{InnerSpace, Vector2},
+    core::Transform,
     ecs::{Entities, Join, Read, ReadStorage, System, WriteStorage},
     renderer::{SpriteRender, Transparent},
 };
-use crate::component::{Ally, Animation, Player};
+use config::GameoffConfig;
+use crate::component::{Ally, Animation, Motion, Player};
 use rand::distributions::{Distribution, Uniform};
 
 pub struct Movement;
 
 impl<'s> System<'s> for Movement {
-    type SystemData = (ReadStorage<'s, Ally>, WriteStorage<'s, Transform>);
+    type SystemData = (
+        ReadStorage<'s, Ally>,
+        WriteStorage<'s, Motion>,
+        ReadStorage<'s, Transform>,
+        ReadStorage<'s, Player>,
+        Read<'s, GameoffConfig>,
+        Entities<'s>,
+    );
 
-    fn run(&mut self, (allies, mut transforms): Self::SystemData) {
-        for (_, _transform) in (&allies, &mut transforms).join() {}
+    fn run(
+        &mut self,
+        (allies, mut motions, transforms, players, config, entities): Self::SystemData,
+    ) {
+        let mut rng = rand::thread_rng();
+        let zero_distance_dist = Uniform::new(0.5, 1.0);
+
+        let p_transform = {
+            let (t, _) = (&transforms, &players)
+                .join()
+                .next()
+                .expect("no player found");
+            (t.clone())
+        };
+
+        for (_, motion, transform1, entity1) in
+            (&allies, &mut motions, &transforms, &entities).join()
+        {
+            let d = (p_transform.translation - transform1.translation).truncate();
+            let m = d.magnitude().abs();
+
+            let mut pv = d.normalize(); //unit vector
+                                        //less than follow distance, do nothing
+            if m < config.ally.follow_distance {
+                pv *= 0.0;
+            } else if (m > config.ally.follow_distance) && (m < config.ally.max_distance) {
+                //at or more than the follow distance, play a bit of catchup
+                pv *= (1.0
+                    + (m - config.ally.follow_distance)
+                        / (config.ally.max_distance - config.ally.follow_distance))
+                    * config.speed;
+            } else if m > config.ally.max_distance {
+                //max catchup is 2.0
+                pv *= 2.0 * config.speed;
+            }
+
+            let mut av = Vector2::new(0.0, 0.0);
+
+            for (_, transform2, entity2) in (&allies, &transforms, &entities).join() {
+                if entity1 != entity2 {
+                    let d = (transform1.translation - transform2.translation).truncate();
+                    let m = d.magnitude().abs();
+                    let mut v = if m == 0.0 {
+                        //make sure the vector always points somewhere
+                        Vector2::new(
+                            zero_distance_dist.sample(&mut rng),
+                            zero_distance_dist.sample(&mut rng),
+                        ).normalize()
+                    } else {
+                        d.normalize()
+                    };
+
+                    if m < config.ally.min_distance {
+                        // repell if less than a minimum distance
+                        v *= (config.ally.min_distance - m) / config.ally.min_distance
+                            * 5.0
+                            * config.speed;
+                    } else if (m > config.ally.follow_distance) && (m < config.ally.max_distance) {
+                        // attract to other allies as well as the player.
+                        v *= ((m - config.ally.follow_distance)
+                            / (config.ally.max_distance - config.ally.follow_distance))
+                            * config.speed;
+                    }
+                    //The player 2x speed up should dominate if longer than max distance
+
+                    av += v;
+                }
+            }
+            motion.vel = pv + av;
+        }
     }
 }
 
@@ -22,60 +98,34 @@ pub struct Grouper;
 impl<'s> System<'s> for Grouper {
     type SystemData = (
         ReadStorage<'s, Ally>,
-        WriteStorage<'s, Transform>,
-        WriteStorage<'s, Parent>,
-        WriteStorage<'s, Player>,
+        ReadStorage<'s, Transform>,
+        WriteStorage<'s, Motion>,
+        ReadStorage<'s, Player>,
         Entities<'s>,
     );
 
-    fn run(
-        &mut self,
-        (allies, mut transforms, mut parents, mut players, entities): Self::SystemData,
-    ) {
-        let get_relative_position = |mut num_allies: u32| {
-            num_allies %= 9;
-
-            let ind = if num_allies == 4 {
-                num_allies + 1 // skip player position
-            } else {
-                num_allies
-            } as i32;
-
-            let row = ind / 3 - 1;
-            let col = ind % 3 - 1;
-
-            (row as f32 * 32.0, col as f32 * 32.0)
-        };
-
-        let (p_transform, allies_count, p_entity) = {
-            let (t, p, e) = (&transforms, &players, &entities)
+    fn run(&mut self, (allies, transforms, mut motions, players, entities): Self::SystemData) {
+        let p_transform = {
+            let (t, _) = (&transforms, &players)
                 .join()
                 .next()
                 .expect("no player found");
-            (t.clone(), p.num_allies, e)
+            (t.clone())
         };
 
-        let mut orphans = vec![];
-
-        for (_, _, transform, entity) in (&allies, !&parents, &mut transforms, &entities).join() {
+        let mut merged = vec![];
+        for (_ally, transform, e, _) in (&allies, &transforms, &*entities, !&motions).join() {
             let d = p_transform.translation - transform.translation;
-            let merge_dist = f32::powf(32.0 * 1.0, 2.0);
-            if d.truncate().magnitude2() < merge_dist {
-                let (new_x, new_y) = get_relative_position(allies_count);
+            let m = d.truncate().magnitude();
 
-                transform.translation.x = new_x;
-                transform.translation.y = new_y;
-
-                orphans.push(entity);
+            let merge_dist = 32.0 * 1.0;
+            if m < merge_dist {
+                merged.push(e);
             }
         }
 
-        players.get_mut(p_entity).unwrap().num_allies += orphans.len() as u32;
-
-        for entity in orphans {
-            parents
-                .insert(entity, Parent { entity: p_entity })
-                .expect("the unexpected");
+        for entity in merged {
+            let _ = motions.insert(entity, Motion::default());
         }
     }
 }
@@ -85,7 +135,7 @@ pub struct Spawner;
 impl<'s> System<'s> for Spawner {
     type SystemData = (
         ReadStorage<'s, Player>,
-        ReadStorage<'s, Parent>,
+        ReadStorage<'s, Motion>,
         Read<'s, crate::load::LoadedTextures>,
         WriteStorage<'s, Transform>,
         WriteStorage<'s, Ally>,
@@ -99,7 +149,7 @@ impl<'s> System<'s> for Spawner {
         &mut self,
         (
             players,
-            parents,
+            motions,
             textures,
             mut transforms,
             mut allies,
@@ -109,7 +159,7 @@ impl<'s> System<'s> for Spawner {
             mut animation,
         ): Self::SystemData,
     ) {
-        let count = (&allies, !&parents).join().count();
+        let count = (&allies, !&motions).join().count();
 
         if count < 5 {
             let mut ally_positions = vec![];

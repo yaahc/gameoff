@@ -4,8 +4,10 @@
 )]
 extern crate amethyst;
 extern crate rand;
+extern crate serde;
 
 mod component;
+pub mod config;
 mod load;
 mod map;
 mod state;
@@ -24,7 +26,8 @@ use state::Menu;
 
 pub fn run() -> amethyst::Result<()> {
     let root = format!("{}/resources", application_root_dir());
-    let config = DisplayConfig::load(format!("{}/display_config.ron", root));
+    let display_config = DisplayConfig::load(format!("{}/display_config.ron", root));
+    let gameoff_config = config::GameoffConfig::load(format!("{}/config.ron", root));
     let pipe = Pipeline::build().with_stage(
         Stage::with_backbuffer()
             .clear_target([0.1, 0.1, 0.1, 1.0], 1.0)
@@ -45,12 +48,14 @@ pub fn run() -> amethyst::Result<()> {
             "OrthoCamera",
             &[],
         ).with_bundle(
-            RenderBundle::new(pipe, Some(config))
+            RenderBundle::new(pipe, Some(display_config))
                 .with_sprite_sheet_processor()
                 .with_sprite_visibility_sorting(&[]), // Let's us use the `Transparent` component
         )?;
 
-    let mut game = Application::build(root, Menu)?.build(game_data)?;
+    let mut game = Application::build(root, Menu)?
+        .with_resource(gameoff_config)
+        .build(game_data)?;
     game.run();
     Ok(())
 }
