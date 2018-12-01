@@ -7,6 +7,7 @@ use amethyst::{
 };
 use crate::component::{Animation, Enemy, Expiration, Motion, Player, Projectile};
 use rand::distributions::{Distribution, Uniform};
+use std::time::Duration;
 
 pub struct Movement;
 
@@ -139,7 +140,9 @@ impl<'s> System<'s> for Attack {
                 max_vel: None,
             };
 
-            let expiration = Expiration { seconds_left: 1.0 };
+            let expiration = Expiration {
+                seconds_left: Duration::from_secs(1),
+            };
 
             entities
                 .build_entity()

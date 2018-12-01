@@ -1,8 +1,9 @@
 use amethyst::ecs::{Component, DenseVecStorage};
+use std::time::Duration;
 
 #[derive(Default, Debug)]
 pub struct Expiration {
-    pub seconds_left: f32,
+    pub seconds_left: Duration,
 }
 
 impl Component for Expiration {
