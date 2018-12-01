@@ -5,7 +5,7 @@ use amethyst::{
     input::InputHandler,
     renderer::{SpriteRender, Transparent},
 };
-use crate::component::{Animation, Enemy, Motion, Player, Projectile};
+use crate::component::{Animation, Enemy, Expiration, Motion, Player, Projectile};
 use rand::distributions::{Distribution, Uniform};
 
 pub struct Movement;
@@ -64,6 +64,7 @@ impl<'s> System<'s> for Attack {
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, Transparent>,
         WriteStorage<'s, Animation>,
+        WriteStorage<'s, Expiration>,
         Entities<'s>,
         Read<'s, InputHandler<String, String>>,
     );
@@ -80,6 +81,7 @@ impl<'s> System<'s> for Attack {
             mut sprites,
             mut transparent,
             mut animations,
+            mut expirations,
             entities,
             input,
         ): Self::SystemData,
@@ -137,6 +139,8 @@ impl<'s> System<'s> for Attack {
                 max_vel: None,
             };
 
+            let expiration = Expiration { seconds_left: 1.0 };
+
             entities
                 .build_entity()
                 .with(transform, &mut transforms)
@@ -145,6 +149,7 @@ impl<'s> System<'s> for Attack {
                 .with(sprite, &mut sprites)
                 .with(Transparent, &mut transparent)
                 .with(anim, &mut animations)
+                .with(expiration, &mut expirations)
                 .build();
         }
     }
